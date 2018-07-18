@@ -1,0 +1,14 @@
+{{ res.chk_name }}
+{%- for line in res.xyz %}
+{{ line[0] }}    {{ line[1][0] }}    {{ line[1][1] }}    {{ line[1][2] }}
+{%- endfor %}
+
+*CFOUR(CHARGE={{ res.charge }},MULT={{ res.multiplicity }}
+COORD=CARTESIAN)
+
+{% if 'isotopes' in res.keys() -%}
+%isotopes
+{%- for line in res.isotopes %}
+{{ line[1] }}
+{%- endfor %}
+{%- endif %}
