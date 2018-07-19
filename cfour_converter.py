@@ -22,6 +22,8 @@ import numpy as np
 import os
 import shutil
 
+#----------------------prepare-----------------------------
+
 def get_section_bounds(data, section_separator, entry_number=0):
     """
     Scans data for section separators, counts them.
@@ -264,6 +266,162 @@ def prepare_cfour_inputs_from_gau(
             dir_name, 'ZMAT'))
         render_zmat_file(res, filename)
 
+#-------------------- run -----------------------------
+
+def check_clean(job_dir):
+    """
+    Checks if the cfour job_dir is clean
+    """
+    keep_files = ['ZMAT', 'GENBAS']
+
+    for name in os.listdir(job_dir):
+        if name not in keep_files:
+            return False
+    return True
+    
+def check_complete(job_dir, output_name='OUTPUT'):
+    """
+    Simple check if cfour job is complete
+
+    Parameters
+    ----------
+    job_dir : str
+           path to the job directory containing the ZMAT file
+    out_filename : str, default OUTPUT
+           filename of the output
+    Returns
+    -------
+    status : bool
+           Completion status
+    """
+    # Check the last line in the output
+    complete_pattern = re.compile(
+        b'(?:--executable xjoda finished with status\s*)(?P<exitcode>\d)'
+    )
+    try:
+        with open('/'.join((job_dir, output_name)), 'r+') as fp:
+            complete_match = complete_pattern.search(
+                fp.readlines()[-1].encode(encoding)
+            )
+    except:
+        return False
+
+    if complete_match is not None:
+        if int(complete_match.group('exitcode')) != 0:
+            return False
+    else:
+        return False
+    
+    # Additionally, check if job produced the properties files
+    required_files = ['FCM', 'FCMFINAL']
+    return all(os.path.isfile('/'.join((job_dir, filename)))
+               for filename in required_files)
+
+
+def cleanup_incomplete_job_dir(job_dir):
+    """
+    Removes all temporary files from a job directory
+    """
+    keep_files = ['ZMAT', 'GENBAS', 'OUTPUT']
+
+    for name in os.listdir(job_dir):
+        if name not in keep_files:
+            full_name = '/'.join((job_dir, name))
+            if os.path.isfile(full_name):
+                os.remove(full_name)
+
+            elif os.path.isdir(full_name):
+                shutil.rmtree(full_name)
+
+
+def run_job(job_dir, out_filename='OUTPUT'):
+    """
+    Run cfour in a specified directory, collect results
+
+    Parameters
+    ----------
+    job_dir : str
+           path to the job directory containing the ZMAT file
+    out_filename : str, default OUTPUT
+           filename of the output
+    """
+    with open("/".join((job_dir, out_filename)), 'w') as fp:
+        p = subprocess.Popen(['xcfour'], cwd=job_dir,
+                             stderr=subprocess.STDOUT,
+                             stdout=fp)
+    p.wait()
+
+
+def run_all(
+        cfour_out_prefix=default_cfour_out_prefix,
+        keep_going=False, verbose=False):
+    """
+    Runs all jobs in a directory with possible restart
+
+    Parameters
+    ----------
+    cfour_out_prefix : str
+              directory containing cfour job directories
+    keep_going : bool, default False
+              try to continue job execution
+    verbose : bool, default False
+              print progress
+    """
+    if verbose:
+        print('Running jobs in dir: {}'.format(cfour_out_prefix))
+
+    # Find out how many jobs we potentially have
+    n_jobs = 0
+    for name in os.listdir(cfour_out_prefix):
+        full_name = '/'.join((cfour_out_prefix, name))
+        if os.path.isdir(full_name):
+            n_jobs += 1
+
+    # Walk the dir tree and run jobs
+    job_num = 0
+    for name in os.listdir(cfour_out_prefix):
+        full_name = '/'.join((cfour_out_prefix, name))
+        if os.path.isdir(full_name):
+            if verbose:
+                print('[{}/{}] {}..'.format(
+                    job_num+1, n_jobs, full_name), end="")
+            is_clean = check_clean(full_name)
+            if is_clean:
+                if verbose:
+                    print('clean, run..')
+                run_job(full_name)
+            else:
+                is_complete = check_complete(full_name)
+                if is_complete:
+                    if verbose:
+                        print('complete, skip'.format(full_name))
+                    job_num += 1
+                    continue
+                else:
+                    if verbose:
+                        print(
+                            'incomplete'.format(full_name), end="")
+                    if keep_going:
+                        cleanup_incomplete_job_dir(
+                            full_name
+                        )
+                        if verbose:
+                            print(', force run..')
+                        run_job(full_name)
+                    else:
+                        if verbose:
+                            print('')
+                            break
+            job_num += 1
+
+    if verbose:
+        if job_num == n_jobs:
+            print('All done!')
+        else:
+            print('Check for errors')
+
+
+#---------------------wrapper----------------------------
 
 def main():
     """
@@ -322,6 +480,12 @@ def main():
         help='finish partially completed job dir hierarchy'
     )
 
+    parser_run.add_argument(
+        '--verbose', dest='verbose',
+        action='store_const', const=True, default=False,
+        help='display progress while running jobs'
+    )
+
     # parse commands to collect
     parser_collect = subparsers.add_parser(
         'collect', help='collect cfour jobs output')
@@ -339,7 +503,9 @@ def main():
     )
 
     args = parser.parse_args()
-    #print(args)
+    # strip a stray trailing / in the always present
+    # path parameter
+    args.cfour_out_prefix = args.cfour_out_prefix.rstrip('/')
 
     if args.command == 'prepare':
         prepare_cfour_inputs_from_gau(
@@ -348,7 +514,13 @@ def main():
             cfour_dir_basename=args.cfour_dir_basename,
             cfour_basis_file_path=args.cfour_basis_file_path
         )
-        
+
+    elif args.command == 'run':
+        run_all(
+            cfour_out_prefix=args.cfour_out_prefix,
+            keep_going=args.keep_going,
+            verbose=args.verbose
+        )
 
 
 if __name__ == '__main__':
