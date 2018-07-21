@@ -1,0 +1,29 @@
+Total Energy                               R {{ res.energy }}
+Current cartesian coordinates              R   N=       {{ res.natoms*3 }}
+{% for line in res.xyz -%}
+{{ line[1] | join(' ')  }}
+{% endfor -%}
+Cartesian Gradient                         R   N=       {{ res.natoms*3 }}
+{% for line in res.grd -%}
+{{ line[1] | join('  ') }}
+{% endfor -%}
+{%- if 'hess' in res.keys() -%}
+Cartesian Force Constants                  R   N=       {{ res.natoms*3*(res.natoms*3 + 1) // 2 }}
+{% for batches in res.hess | batch(4) -%}
+    {{ batches | join('  ') }}
+{% endfor -%}
+{%- endif -%}
+{%- if 'dipole' in res.keys() -%}
+Dipole Moment                              R   N=           3
+{{ res.dipole | join('  ') }}
+Dipole Derivatives                         R   N=       {{ res.natoms*3*3 }}
+{% for row in res.dipder.tolist() -%}
+    {{ row | join('  ') }}
+{% endfor -%}
+{%- endif -%}
+{%- if 'polar' in res.keys() -%}
+Polarizability                             R   N=           6
+{% for row in res.polar.tolist() -%}
+    {{ row | join('  ') }}
+{% endfor -%}
+{%- endif -%}
