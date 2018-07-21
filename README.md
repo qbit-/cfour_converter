@@ -1,4 +1,4 @@
-# cfour_converter
+# Cfour converter
 This is a simple script to facilitate the interoperation
 between CFOUR and Gaussian software. If your program can read Gaussian
 __.fch__ files, you can use this script instead of creating a new
@@ -15,3 +15,7 @@ compatibility is not guaranteed, but should be easy to correct)
 
 Extraction of information is done with the help of regular expressions,
 and output is produced using Jinja2 templates
+
+Dependencies:
+* Numpy
+* Jinja2
