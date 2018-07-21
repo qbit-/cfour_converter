@@ -1,29 +1,55 @@
 Total Energy                               R {{ res.energy }}
 Current cartesian coordinates              R   N=       {{ res.natoms*3 }}
-{% for line in res.xyz -%}
-{{ line[1] | join(' ')  }}
+{% for batches in res.xyz_matrix.flatten() | batch(5) -%}
+{%- for elem in batches -%}
+{{ " %15.8E" | format(elem)  }}
+{%- endfor -%}
+{{ '' }}
 {% endfor -%}
 Cartesian Gradient                         R   N=       {{ res.natoms*3 }}
-{% for line in res.grd -%}
-{{ line[1] | join('  ') }}
+{% for batches in res.grd_matrix.flatten() | batch(5) -%}
+{%- for elem in batches -%}
+{{ " %15.8E" | format(elem)  }}
+{%- endfor -%}
+{{ '' }}
 {% endfor -%}
+
 {%- if 'hess' in res.keys() -%}
 Cartesian Force Constants                  R   N=       {{ res.natoms*3*(res.natoms*3 + 1) // 2 }}
-{% for batches in res.hess | batch(4) -%}
-    {{ batches | join('  ') }}
+{% for batches in res.hess.flatten() | batch(5) -%}
+{%- for elem in batches -%}
+{{ " %15.8E" | format(elem)  }}
+{%- endfor -%}
+{{ '' }}
 {% endfor -%}
 {%- endif -%}
+
 {%- if 'dipole' in res.keys() -%}
 Dipole Moment                              R   N=           3
-{{ res.dipole | join('  ') }}
-Dipole Derivatives                         R   N=       {{ res.natoms*3*3 }}
-{% for row in res.dipder.tolist() -%}
-    {{ row | join('  ') }}
+{% for batches in res.dipole.flatten() | batch(5) -%}
+{%- for elem in batches -%}
+{{ " %15.8E" | format(elem)  }}
+{%- endfor -%}
+{{ '' }}
 {% endfor -%}
 {%- endif -%}
+
+{%- if 'polar' in res.keys() -%}
+Dipole Derivatives                         R   N=       {{ res.natoms*3*3 }}
+{% for batches in res.dipder.flatten() | batch(5) -%}
+{%- for elem in batches -%}
+{{ " %15.8E" | format(elem)  }}
+{%- endfor -%}
+{{ '' }}
+{% endfor -%}
+{%- endif -%}
+
 {%- if 'polar' in res.keys() -%}
 Polarizability                             R   N=           6
-{% for row in res.polar.tolist() -%}
-    {{ row | join('  ') }}
+{% for batches in res.polar.flatten() | batch(5) -%}
+{%- for elem in batches -%}
+{{ " %15.8E" | format(elem)  }}
+{%- endfor -%}
+{{ '' }}
 {% endfor -%}
 {%- endif -%}

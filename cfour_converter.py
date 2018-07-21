@@ -204,9 +204,10 @@ def extract_from_gau_input(filename, entry_number=0):
         # repack
         xyz = []
         isotopes = []
-        for line in table:
-            xyz.append([line['element'], (line['x'], line['y'], line['z'])])
-            isotopes.append((line['element'], line.get('isotope', None)))
+        for row in table:
+            xyz.append([row['element'], (row['x'], row['y'], row['z'])])
+            xyz_matrix = np.row_stack((xyz_matrix, xyz[-1][1]))
+            isotopes.append((row['element'], row.get('isotope', None)))
 
         res.update({'xyz' : xyz})
         res.update({'isotopes' : isotopes})
@@ -487,9 +488,17 @@ def extract_from_cfour_out(job_dir, output_name='OUTPUT'):
 
         # repack
         xyz = []
+        xyz_matrix = np.zeros([0, 3])
         for row in table:
-            xyz.append([row['element'], (row['x'], row['y'], row['z'])])
+            xyz.append([row['element'], (
+                float(row['x']),
+                float(row['y']), float(row['z']))])
+            xyz_matrix = np.row_stack((xyz_matrix, xyz[-1][1]))
+
         res.update({'xyz' : xyz})
+
+        #XYZ array, rows: Atom1 Atom2 .. columns: X Y Z
+        res.update({'xyz_matrix' : xyz_matrix})
 
         # save the number of atoms
         natoms = len(xyz)
@@ -499,11 +508,16 @@ def extract_from_cfour_out(job_dir, output_name='OUTPUT'):
     with open('/'.join((job_dir, 'GRD'))) as fp:
         lines = fp.readlines()
         grd = []
+        grd_matrix =np.zeros([0, 3])
         for row, line in zip(xyz, lines[-natoms:]):
             mass, x, y, z = line.rstrip('\n').split()
-            grd.append([row[0], (x, y, z)])
-
+            grd.append([row[0], (float(x), float(y), float(z))])
+            grd_matrix = np.row_stack((grd_matrix, grd[-1][1]))
+    
         res.update({'grd' : grd})
+
+        #XYZ array, rows: Atom1 Atom2 .. columns: X Y Z
+        res.update({'grd_matrix' : grd_matrix})
         
     # Now extract hessian
     try:
@@ -517,7 +531,7 @@ def extract_from_cfour_out(job_dir, output_name='OUTPUT'):
             # order along rows : Atom1.x Atom1.y Atom1.z Atom2.x Atom2.y ...
             # extract the lower triangle and store it
             idx = np.tril_indices_from(hess)
-            res.update({'hess' : hess[idx]})
+            res.update({'hess' : np.vectorize(float)(hess[idx])})
 
     except FileNotFoundError:
         if verbose:
@@ -529,7 +543,7 @@ def extract_from_cfour_out(job_dir, output_name='OUTPUT'):
             line = fp.readline()
             dipole = np.array(line.rstrip('\n').split())
 
-            res.update({'dipole' : dipole})
+            res.update({'dipole' : np.vectorize(float)(dipole)})
     except FileNotFoundError:
         if verbose:
             print('No dipole moment found')
@@ -566,7 +580,7 @@ def extract_from_cfour_out(job_dir, output_name='OUTPUT'):
                 dipder = np.column_stack(
                     (dipder, accum))
 
-            res.update({'dipder' : dipder})
+            res.update({'dipder' : np.vectorize(float)(dipder)})
     except FileNotFoundError:
         if verbose:
             print('Dipole derivatives not found')
@@ -582,7 +596,7 @@ def extract_from_cfour_out(job_dir, output_name='OUTPUT'):
                      line.rstrip('\n').split())
                     )
 
-            res.update({'polar' : polar})
+            res.update({'polar' : np.vectorize(float)(polar)})
     except FileNotFoundError:
         if verbose:
             print('No polarizabilities found')
@@ -687,7 +701,7 @@ def convert_cfour_to_fch(
         if all_done:
             if verbose:
                 print('Removing {}..'.format(cfour_out_prefix))
-            #shutil.rmtree(cfour_out_prefix)
+            shutil.rmtree(cfour_out_prefix)
         else:
             if verbose:
                 print(
