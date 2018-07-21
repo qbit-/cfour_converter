@@ -11,6 +11,7 @@ default_cfour_out_prefix = './cfour_jobs'
 default_template_prefix = './templates'
 default_cfour_template_filename = 'zmat_ccsd_template.txt'
 default_cfour_basis_file_path = './templates/GENBAS'
+default_cfour_dir_basename = 'job'
 default_fch_template_filename = 'fch_template.txt'
 default_fch_out_prefix = 'fch_outs'
 encoding = 'utf-8'
@@ -250,7 +251,7 @@ def render_zmat_file(datadict, filename,
 
 def prepare_cfour_inputs_from_gau(
         gau_filename, cfour_out_prefix=default_cfour_out_prefix,
-        cfour_dir_basename='job',
+        cfour_dir_basename=None,
         cfour_basis_file_path=default_cfour_basis_file_path,
         verbose=False):
     """
@@ -277,6 +278,13 @@ def prepare_cfour_inputs_from_gau(
             gau_filename, entry_number)
 
         # make directory and copy basis file
+        # figure out directory basename
+        if cfour_dir_basename is None:
+            if res['chk_name'] is not None:
+                cfour_dir_basename = res['chk_name']
+            else:
+                cfour_dir_basename = default_cfour_dir_basename
+
         dir_name = '/'.join([
             cfour_out_prefix,
             cfour_dir_basename + "_q{}_{}".format(
