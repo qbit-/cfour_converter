@@ -34,7 +34,7 @@ or directly by making it executable
 chmod +x cfour_converter.py
 ./cfour_converter.py [commands]
 ```
-* preparing CFOUR inputs from Gaussian inputs
+### preparing CFOUR inputs from Gaussian inputs
 To prepare CFOUR inputs call the script with the `prepare` argument:
 
 ```bash
@@ -42,19 +42,15 @@ To prepare CFOUR inputs call the script with the `prepare` argument:
 ```
 full list of options can be found by using `-h` argument
 
-* runnung CFOUR
-Call the script with the `run` subcommand. If the calculation is terminated
-before completion, it is possible to continue calling the script with the
-`--keep_going` argument. The command can be configured with the `--command`
-keyword:
+### runnung CFOUR
+Call the script with the `run` subcommand. If the calculation is terminated before completion, it is possible to continue calling the script with the `--keep_going` argument. The command can be configured with the `--command` keyword:
 
 ```bash
 ./cfour_converter.py run --keep_going --cfour_out_prefix prefix/to/cfour/input/directories --command xcfour
 ```
 
-* Converting CFOUR output to Gaussian __.fch__ files
-Call the script with the `convert` subcommand. A series of __.fch__ files will be produced,
-one per CFOUR directory. The original CFOUR directory can be removed with the `--clean_cfour` argument.
+### Converting CFOUR output to Gaussian __.fch__ files
+Call the script with the `convert` subcommand. A series of __.fch__ files will be produced, one per CFOUR sub-directory. The original CFOUR directory can be removed with the `--clean_cfour` argument.
 
 ```bash
 ./cfour_converter.py convert --fch_out_prefix output/fch/files/here
