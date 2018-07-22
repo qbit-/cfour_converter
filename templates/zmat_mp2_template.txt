@@ -1,0 +1,21 @@
+{{ res.chk_name }}
+{%- for line in res.xyz %}
+{{ line[0] }}    {{ line[1][0] }}    {{ line[1][1] }}    {{ line[1][2] }}
+{%- endfor %}
+
+*CFOUR(CHARGE={{ res.charge }},MULT={{ res.multiplicity }}
+CALC=MP2,BASIS=STO-3g
+ABCDTYPE=AOBASIS
+XFORM_TOL=12
+SCF_CONV=12
+GEO_CONV=10
+VIB=ANALYTIC
+CPHF_CONVER=12
+COORD=CARTESIAN)
+
+{% if 'isotopes' in res.keys() -%}
+%isotopes
+{%- for line in res.isotopes %}
+{{ line[1] }}
+{%- endfor %}
+{%- endif %}
