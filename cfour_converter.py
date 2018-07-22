@@ -262,6 +262,7 @@ def prepare_cfour_inputs_from_gau(
         gau_filename, cfour_out_prefix=default_cfour_out_prefix,
         cfour_dir_basename=None,
         cfour_basis_file_path=default_cfour_basis_file_path,
+        cfour_template_filename=default_cfour_template_filename,
         verbose=False):
     """
     This function takes a Gaussian input, and for
@@ -310,7 +311,8 @@ def prepare_cfour_inputs_from_gau(
         # render ZMAT file
         filename = '/'.join((
             dir_name, 'ZMAT'))
-        render_zmat_file(res, filename)
+        render_zmat_file(res, filename,
+                         template_filename=cfour_template_filename)
 
     if verbose:
         print('Created {} input directories in {}'.format(
@@ -784,6 +786,11 @@ def main():
         help='basename for cfour job directories'
     )
     parser_prepare.add_argument(
+        '--template_filename', dest='cfour_template_filename',
+        type=str, default=default_cfour_template_filename,
+        help='name of the template to use'
+    )
+    parser_prepare.add_argument(
         '--basis_file', dest='cfour_basis_file_path',
         type=str, default=default_cfour_basis_file_path,
         help='path to cfour basis file'
@@ -851,6 +858,7 @@ def main():
             cfour_out_prefix=args.cfour_out_prefix,
             cfour_dir_basename=args.cfour_dir_basename,
             cfour_basis_file_path=args.cfour_basis_file_path,
+            cfour_template_filename=args.cfour_template_filename,
             verbose=args.verbose
         )
 
