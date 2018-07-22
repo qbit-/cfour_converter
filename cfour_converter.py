@@ -15,19 +15,15 @@ import os
 import shutil
 
 # Some tunable globals
+script_prefix=os.path.dirname(os.path.realpath(__file__))
 default_cfour_out_prefix = './cfour_jobs'
-default_template_prefix = './templates'
+default_template_prefix = script_prefix + '/templates'
+default_cfour_basis_file_path = script_prefix + '/templates/GENBAS'
 default_cfour_template_filename = 'zmat_ccsd_template.txt'
 default_cfour_dir_basename = 'job'
 default_cfour_command='xcfour'
 default_fch_template_filename = 'fch_template.txt'
 default_fch_out_prefix = 'fch_outs'
-default_cfour_basis_file_path = '/'.join((
-    os.path.dirname(os.path.realpath(__file__)),
-    './templates/GENBAS'))
-default_template_prefix = '/'.join((
-    os.path.dirname(os.path.realpath(__file__)),
-    './templates'))
 encoding = 'utf-8'
 
 #----------------------prepare-----------------------------
