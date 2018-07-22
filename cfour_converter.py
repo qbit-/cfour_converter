@@ -12,6 +12,7 @@ default_template_prefix = './templates'
 default_cfour_template_filename = 'zmat_ccsd_template.txt'
 default_cfour_basis_file_path = './templates/GENBAS'
 default_cfour_dir_basename = 'job'
+default_cfour_command='xcfour'
 default_fch_template_filename = 'fch_template.txt'
 default_fch_out_prefix = 'fch_outs'
 encoding = 'utf-8'
@@ -375,7 +376,10 @@ def cleanup_incomplete_job_dir(job_dir):
                 shutil.rmtree(full_name)
 
 
-def run_job(job_dir, out_filename='OUTPUT'):
+def run_job(job_dir,
+            command_name=default_cfour_command,
+            out_filename='OUTPUT'
+            ):
     """
     Run cfour in a specified directory, collect results
 
@@ -387,7 +391,7 @@ def run_job(job_dir, out_filename='OUTPUT'):
            filename of the output
     """
     with open("/".join((job_dir, out_filename)), 'w') as fp:
-        p = subprocess.Popen(['xcfour'], cwd=job_dir,
+        p = subprocess.Popen([command_name], cwd=job_dir,
                              stderr=subprocess.STDOUT,
                              stdout=fp)
     p.wait()
@@ -395,7 +399,9 @@ def run_job(job_dir, out_filename='OUTPUT'):
 
 def run_all(
         cfour_out_prefix=default_cfour_out_prefix,
-        keep_going=False, verbose=False):
+        command_name=default_cfour_command,
+        keep_going=False,
+        verbose=False):
     """
     Runs all jobs in a directory with possible restart
 
@@ -403,6 +409,8 @@ def run_all(
     ----------
     cfour_out_prefix : str
               directory containing cfour job directories
+    command_name : str, default default_cfour_command
+              command to run
     keep_going : bool, default False
               try to continue job execution
     verbose : bool, default False
@@ -430,7 +438,7 @@ def run_all(
             if is_clean:
                 if verbose:
                     print('clean, run..')
-                run_job(full_name)
+                run_job(full_name, command_name)
             else:
                 is_complete = check_complete(full_name)
                 if is_complete:
@@ -447,8 +455,8 @@ def run_all(
                             full_name
                         )
                         if verbose:
-                            print('..force run..')
-                        run_job(full_name)
+                            print('..cleaning and continue..')
+                        run_job(full_name, command_name)
                     else:
                         if verbose:
                             print('')
@@ -789,6 +797,13 @@ def main():
         help='finish partially completed job dir hierarchy'
     )
 
+    parser_run.add_argument(
+        '--command_name', dest='command_name', type=str,
+        default=default_cfour_command,
+        help='name of the executable to run'
+    )
+
+
     # parse commands to convert
     parser_convert = subparsers.add_parser(
         'convert', help='convert cfour jobs output')
@@ -834,6 +849,7 @@ def main():
     elif args.command == 'run':
         run_all(
             cfour_out_prefix=args.cfour_out_prefix,
+            command_name=args.command_name,
             keep_going=args.keep_going,
             verbose=args.verbose
         )
