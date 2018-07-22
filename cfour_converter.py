@@ -71,7 +71,8 @@ def get_nth_block_bounds_by_pattern(data, start_pattern, end_pattern, entry_numb
     return start_at, end_at
 
 
-def search_named_re_entries(data, pattern, start_at=0, end_at=None):
+def search_named_re_entries(data, pattern, start_at=0, end_at=None,
+                            multiline=False):
     """Searches for the first occurence of pattern in data,
     collects named matches into a dict
 
@@ -85,6 +86,8 @@ def search_named_re_entries(data, pattern, start_at=0, end_at=None):
           position to start the search
     end_at : int, optional
           position to end the search
+    multiline : bool, default False
+          if regular expressions are multiline
     Returns
     -------
     result : dict
@@ -98,7 +101,11 @@ def search_named_re_entries(data, pattern, start_at=0, end_at=None):
     test_pattern = re.compile(
             pattern
         )
-    test_match = test_pattern.search(data, start_at, end_at)
+    if not multiline:
+        test_match = test_pattern.search(data, start_at, end_at)
+    else:
+        test_match = re.search(pattern, data[start_at:end_at],
+                               flags=re.MULTILINE)
     if test_match is None:
         raise ValueError(
             test_pattern.pattern.decode(encoding) +
@@ -188,10 +195,10 @@ def extract_from_gau_input(filename, entry_number=0):
         res.update(r)
 
         # skip commands and get molecule name, charge and multiplicity
-        gau_preamble_pattern = b'(?P<command>.*)( *\n){2}((?P<molecule>\S+)\s+)(.*)( *\n){2}((?P<charge>\d),\s*(?P<multiplicity>\d))'
+        gau_preamble_pattern = b'(?P<command>^#.*\n)+([ \t\r\f\v]*\n)(?P<molecule>\w.*\n)+([ \t\r\f\v]*\n)(\s*(?P<charge>\d))(\s+(?P<multiplicity>\d))'
         
         r, start_at = search_named_re_entries(
-            data, gau_preamble_pattern, start_at, end_at)
+            data, gau_preamble_pattern, start_at, end_at, multiline=True)
         res.update(r)
         
         # extracts element symbol, cartesian coordinates and isotope mass
@@ -205,6 +212,7 @@ def extract_from_gau_input(filename, entry_number=0):
         # we will store xyz information in the pyscf format
         # repack
         xyz = []
+        xyz_matrix = np.zeros([0, 3])
         isotopes = []
         for row in table:
             xyz.append([row['element'], (row['x'], row['y'], row['z'])])
