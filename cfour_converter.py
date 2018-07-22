@@ -7,7 +7,7 @@ by the ANCO program which resemble Gaussian output
 """
 from jinja2 import Environment, FileSystemLoader
 from numpy import arange
-from subprocess import Popen, DEVNULL, STDOUT
+import subprocess
 import re
 import mmap
 import numpy as np
