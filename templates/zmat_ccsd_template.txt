@@ -4,15 +4,16 @@
 {%- endfor %}
 
 *CFOUR(CHARGE={{ res.charge }},MULT={{ res.multiplicity }}
-CALC=CCSD(T),BASIS=cc-pVTZ
+COORD=CARTESIAN
+SYMMETRY=OFF
+BASIS=cc-pVTZ
 ABCDTYPE=AOBASIS                
+CALC=CCSD[T]
 CC_PROG=ECC                         
 LINEQ_CONV=7                     
 SCF_CONV=9                       
 CC_CONV=9               
-VIB=ANALYTIC
-RAMAN_INT=ON
-COORD=CARTESIAN)
+VIB=ANALYTIC)
 
 {% if 'isotopes' in res.keys() -%}
 %isotopes
@@ -20,3 +21,8 @@ COORD=CARTESIAN)
 {{ line[1] }}
 {%- endfor %}
 {%- endif %}
+
+
+
+
+

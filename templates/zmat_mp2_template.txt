@@ -4,13 +4,9 @@
 {%- endfor %}
 
 *CFOUR(CHARGE={{ res.charge }},MULT={{ res.multiplicity }}
-CALC=MP2,BASIS=STO-3g
-ABCDTYPE=AOBASIS
-XFORM_TOL=12
+CALC=MP2,BASIS=STO-3G
 SCF_CONV=12
-GEO_CONV=10
 VIB=ANALYTIC
-CPHF_CONVER=12
 COORD=CARTESIAN)
 
 {% if 'isotopes' in res.keys() -%}
@@ -19,3 +15,7 @@ COORD=CARTESIAN)
 {{ line[1] }}
 {%- endfor %}
 {%- endif %}
+
+
+
+
