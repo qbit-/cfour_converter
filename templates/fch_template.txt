@@ -45,7 +45,7 @@ Dipole Derivatives                         R   N=       {{ res.natoms*3*3 }}
 {%- endif -%}
 
 {%- if 'polar' in res.keys() -%}
-Polarizability                             R   N=           6
+Polarizability                             R   N=           9
 {% for batches in res.polar.flatten() | batch(5) -%}
 {%- for elem in batches -%}
 {{ " %15.8E" | format(elem)  }}
