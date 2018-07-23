@@ -469,6 +469,10 @@ def run_all(
                         if verbose:
                             print('..cleaning and continue..')
                         run_job(full_name, command_name)
+                        is_complete_on_restart = check_complete(full_name)
+                        if not is_complete_on_restart:
+                            print('still not working')
+                            break
                     else:
                         if verbose:
                             print('')
