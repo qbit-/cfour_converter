@@ -4,10 +4,11 @@
 {%- endfor %}
 
 *CFOUR(CHARGE={{ res.charge }},MULT={{ res.multiplicity }}
+PARALLEL=OFF
 CALC=MP2,BASIS=STO-3G
 SCF_CONV=12
 VIB=ANALYTIC
-COORD=CARTESIAN)
+COORD=CARTESIAN,UNITS=BOHR)
 
 {% if 'isotopes' in res.keys() -%}
 %isotopes

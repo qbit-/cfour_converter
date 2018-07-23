@@ -4,7 +4,7 @@
 {%- endfor %}
 
 *CFOUR(CHARGE={{ res.charge }},MULT={{ res.multiplicity }}
-COORD=CARTESIAN
+COORD=CARTESIAN,UNITS=BOHR
 SYMMETRY=OFF
 BASIS=cc-pVTZ
 ABCDTYPE=AOBASIS                

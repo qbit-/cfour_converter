@@ -113,7 +113,10 @@ def search_named_re_entries(data, pattern, start_at=0, end_at=None,
 
     res = {key:val.decode(encoding)
            for key,val in test_match.groupdict().items() if val is not None}
-    next_start_at = test_match.end(0)
+    if not multiline:
+        next_start_at = test_match.end(0)
+    else:
+        next_start_at = test_match.end(0) + start_at
 
     return res, next_start_at
 
@@ -196,7 +199,6 @@ def extract_from_gau_input(filename, entry_number=0):
 
         # skip commands and get molecule name, charge and multiplicity
         gau_preamble_pattern = b'(?P<command>^#.*\n)+([ \t\r\f\v]*\n)(?P<molecule>\w.*\n)+([ \t\r\f\v]*\n)(\s*(?P<charge>\d))(\s+(?P<multiplicity>\d))'
-        
         r, start_at = search_named_re_entries(
             data, gau_preamble_pattern, start_at, end_at, multiline=True)
         res.update(r)
