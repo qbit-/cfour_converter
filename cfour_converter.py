@@ -191,7 +191,7 @@ def extract_from_gau_input(filename, entry_number=0):
 
         # extract the chk name, which we will use as an identifier
         # for testing patterns use https://pythex.org/     :)))!!!
-        chk_name_pattern = b'(%Chk=(?P<chk_name>(\S+)_Q(?P<diff_order>\d+)_(?P<filenumber>\d+)))'
+        chk_name_pattern = b'(%Chk=((?P<chk_name>(\S+))_Q(?P<diff_order>\d+)_(?P<filenumber>\d+)))'
 
         r, start_at = search_named_re_entries(
             data, chk_name_pattern, start_at, end_at)
